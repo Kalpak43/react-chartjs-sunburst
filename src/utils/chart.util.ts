@@ -135,3 +135,16 @@ export function extractArcLabels(data: DataNode[][]): string[] {
       level.map((node) => (node.label === "Dummy" ? "" : node.label))
     );
 }
+
+export function processChartData(data: Data, colors: string[]) {
+  computeValues(data);
+  const flattenedDataset = flatten(data);
+  const chartData = convertToChartLayers(flattenedDataset, colors);
+  const arcLabels = extractArcLabels(flattenedDataset);
+
+  return {
+    chartData,
+    arcLabels,
+    flattenedDataset,
+  };
+}

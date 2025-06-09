@@ -26,3 +26,7 @@ interface ChartConfig {
   };
   onArcClick?: (label: string, value?: string) => void;
 }
+
+interface ChartData {
+  datasets: any[];
+}
