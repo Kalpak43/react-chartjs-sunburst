@@ -3,12 +3,6 @@
 import { createElement, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 
-interface TooltipProps {
-  label: string;
-  value: number;
-  parentValue: number;
-}
-
 export function useChartTooltip(config: ChartConfig) {
   const tooltipRootRef = useRef<any>(null);
 

@@ -25,16 +25,25 @@ interface ChartTooltipConfig {
   customOffsetY?: number;
 }
 
+interface TooltipProps {
+  label: string;
+  value: number;
+  parentValue: number;
+  color?: string;
+}
+
 interface ChartConfig {
   colors: string[];
   title: {
     text: string;
     align?: "center" | "start" | "end";
     fontSize?: number;
+    color?: string;
   };
   labels: ChartLabelConfig;
   tooltip: ChartTooltipConfig;
-  onArcClick?: (label: string, value?: string) => void;
+  onArcClick?: ({}: any) => void;
+  cutout?: string;
 }
 
 interface ChartData {

@@ -21,6 +21,7 @@ export function createTitleConfig(
     font: {
       size: title.fontSize ?? 12,
     },
+    color: title.color ?? "#000",
   };
 }
 
@@ -73,7 +74,18 @@ export function createTooltipConfig(
         return;
       }
 
-      renderTooltip({ label, value, parentValue });
+      const backgroundColor = dataset.backgroundColor
+        ? Array.isArray(dataset.backgroundColor)
+          ? dataset.backgroundColor[dataIndex]
+          : dataset.backgroundColor
+        : undefined;
+
+      renderTooltip({
+        label,
+        value,
+        parentValue,
+        color: backgroundColor,
+      });
       tooltipEl.style.opacity = "1";
     },
   };
@@ -184,7 +196,7 @@ export function createClickHandler(
     // Check if it's not a dummy arc
     const isDummy = chartData.datasets[datasetIndex].custom[index].isDummy;
     if (!isDummy) {
-      onArcClick(label, value);
+      onArcClick({ label, value, event, elements });
     }
   };
 }

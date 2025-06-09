@@ -81,36 +81,8 @@ function App() {
   const [data, setData] = useState(applianceData);
   const [searchTimer, setSearchTimer] = useState<NodeJS.Timeout>();
 
-  const chartConfig: ChartConfig = {
-    colors: [
-      "rgba(255, 99, 132)", // red
-      "rgba(54, 162, 235)", // blue
-      "rgba(255, 206, 86)", // yellow
-      "rgba(75, 192, 192)", // teal
-      "rgba(153, 102, 255)", // purple
-    ],
-    title: {
-      text: "Company Appliances",
-      align: "start",
-      fontSize: 20,
-    },
-    labels: {
-      enabled: true,
-      showValues: true,
-      valuesOnly: true,
-      fontSize: 8,
-      color: "#ff0000",
-    },
-    tooltip: {
-      enabled: true,
-      custom: CustomTooltip,
-      customOffsetX: -50,
-      customOffsetY: -100,
-    },
-    onArcClick: handleArcClick,
-  };
-
-  function handleArcClick(label: string) {
+  function handleArcClick(data: any) {
+    const { label } = data;
     const filtered = filterByName(applianceData, label);
     if (filtered) {
       setData(filtered);
@@ -136,6 +108,37 @@ function App() {
     // Store new timer
     setSearchTimer(timer);
   }
+
+  const chartConfig: ChartConfig = {
+    cutout: "10%",
+    colors: [
+      "rgb(255, 99, 132)", // red
+      "rgb(54, 162, 235)", // blue
+      "rgb(255, 206, 86)", // yellow
+      "rgb(75, 192, 192)", // teal
+      "rgb(153, 102, 255)", // purple
+    ],
+    title: {
+      text: data.name,
+      align: "start",
+      fontSize: 20,
+      color: "#ff0000",
+    },
+    labels: {
+      enabled: true,
+      showValues: true,
+      // valuesOnly: true,
+      fontSize: 8,
+      color: "#fff",
+    },
+    tooltip: {
+      enabled: true,
+      custom: CustomTooltip,
+      customOffsetX: -50,
+      customOffsetY: -100,
+    },
+    onArcClick: handleArcClick,
+  };
 
   return (
     <main className={cn("p-8")}>

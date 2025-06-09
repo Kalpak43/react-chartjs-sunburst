@@ -64,7 +64,7 @@ export function SunburstChart({ data, config }: SunburstProps) {
       data: chartData,
       options: {
         // @ts-ignore
-        cutout: "20%",
+        cutout: config.cutout ?? "50%",
         responsive: true,
         animation: {
           onComplete: function () {
