@@ -10,6 +10,21 @@ interface DataNode {
   parentIndex: number;
 }
 
+interface ChartLabelConfig {
+  enabled: boolean;
+  fontSize?: number;
+  color?: string;
+  showValues?: boolean;
+  valuesOnly?: boolean;
+}
+
+interface ChartTooltipConfig {
+  enabled: boolean;
+  custom?: (props: any) => JSX.Element;
+  customOffsetX?: number;
+  customOffsetY?: number;
+}
+
 interface ChartConfig {
   colors: string[];
   title: {
@@ -17,13 +32,8 @@ interface ChartConfig {
     align?: "center" | "start" | "end";
     fontSize?: number;
   };
-  labels: boolean;
-  tooltip: {
-    enabled: boolean;
-    custom?: (props: any) => JSX.Element;
-    customOffsetX?: number;
-    customOffsetY?: number;
-  };
+  labels: ChartLabelConfig;
+  tooltip: ChartTooltipConfig;
   onArcClick?: (label: string, value?: string) => void;
 }
 

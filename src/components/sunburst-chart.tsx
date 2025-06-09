@@ -82,14 +82,19 @@ export function SunburstChart({ data, config }: SunburstProps) {
           ),
           datalabels: {
             ...createDataLabelsConfig(config.labels, arcLabels),
-            display: (context: any) =>
-              animationCompleteRef.current &&
-              context.dataset.data[context.dataIndex] /
-                context.dataset.data.reduce(
-                  (a: number, b: number) => a + b,
-                  0
-                ) >
-                0.05,
+            display: (context: any) => {
+              if (!config.labels.enabled) return false;
+
+              return (
+                animationCompleteRef.current &&
+                context.dataset.data[context.dataIndex] /
+                  context.dataset.data.reduce(
+                    (a: number, b: number) => a + b,
+                    0
+                  ) >
+                  0.05
+              );
+            },
           },
         },
         onClick: createClickHandler(config.onArcClick, chartData, arcLabels),

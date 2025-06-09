@@ -1,3 +1,5 @@
+import { colorWithOpacity } from "./color.util";
+
 export function computeValues(node: Data): number {
   if (node.value !== undefined) {
     return node.value;
@@ -76,7 +78,7 @@ export function convertToChartLayers(data: DataNode[][], colors: string[]) {
     const dataset = {
       data: [] as number[],
       backgroundColor: [] as string[],
-      borderColor: ["rgba(255, 255, 255, 1)"],
+      borderColor: [] as string[],
       hoverBackgroundColor: [] as string[],
       hoverBorderColor: [] as string[],
       borderWidth: 1,
@@ -108,9 +110,17 @@ export function convertToChartLayers(data: DataNode[][], colors: string[]) {
       const opacity = isDummy ? 0 : Math.min(0.9, 1 - levelIndex * 0.2);
 
       dataset.data.push(node.data ?? 0);
-      dataset.backgroundColor.push(`${baseColor}, ${opacity})`);
-      dataset.hoverBackgroundColor.push(`${baseColor}, ${isDummy ? 0 : 1})`);
-      dataset.hoverBorderColor.push(`${baseColor}, ${isDummy ? 0 : 1})`);
+      isDummy
+        ? dataset.borderColor.push(`rgba(255, 255, 255, 0`)
+        : dataset.borderColor.push(`rgba(255, 255, 255, 1`);
+
+      dataset.backgroundColor.push(colorWithOpacity(baseColor, opacity));
+      dataset.hoverBackgroundColor.push(
+        colorWithOpacity(baseColor, isDummy ? 0 : 1)
+      );
+      dataset.hoverBorderColor.push(
+        colorWithOpacity(baseColor, isDummy ? 0 : 0.5)
+      );
       dataset.custom.push({ isDummy });
     });
 

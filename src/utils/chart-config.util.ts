@@ -80,17 +80,20 @@ export function createTooltipConfig(
 }
 
 export function createDataLabelsConfig(
-  labels: boolean,
+  labels: ChartLabelConfig,
   arcLabels: string[]
 ): Partial<DataLabelsOptions> {
   const labelOccurrences = new Map<string, number[]>();
 
   return {
-    color: "#000000",
+    color: labels.color ?? "#000000",
+    textAlign: "center",
     font: {
-      size: 11,
+      size: labels.fontSize ?? 11,
     },
     formatter: (value: number, context: any) => {
+      if (!labels.enabled) return;
+
       const { datasetIndex, dataIndex } = context;
       const flatIndex = getFlatIndex(
         datasetIndex,
@@ -114,19 +117,29 @@ export function createDataLabelsConfig(
         }
       }
 
-      // Only add numbering if this label appears multiple times
-      const indices = labelOccurrences.get(label)!;
-      if (indices.length > 1) {
-        const position = indices.indexOf(flatIndex) + 1;
-        return `${label} (${position})`;
+      let finalLabel = "";
+
+      if (labels.showValues && labels.valuesOnly) {
+        finalLabel += `${value}`;
+      } else {
+        finalLabel = label;
+        const indices = labelOccurrences.get(label)!;
+        if (indices.length > 1) {
+          const position = indices.indexOf(flatIndex) + 1;
+          finalLabel = `${label} (${position})`;
+        }
+
+        if (labels.showValues) {
+          finalLabel += `\n${value}`;
+        }
       }
 
-      return label;
+      return finalLabel;
     },
     align: "center",
     anchor: "center",
     display: (context: any) => {
-      if (!labels) return false;
+      if (!labels.enabled) return false;
 
       // Hide labels for arcs that are too small
       const value = context.dataset.data[context.dataIndex];

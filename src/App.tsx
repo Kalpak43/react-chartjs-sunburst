@@ -3,6 +3,7 @@ import "./App.css";
 import CustomTooltip from "./components/custom-tooltip";
 import { applianceData } from "./static/data";
 import SunburstChart from "./components/sunburst-chart";
+import cn from "./utils/cn.util";
 
 function filterByName(data: Data, keyword: string): Data | null {
   // Check if current node matches the keyword
@@ -82,18 +83,24 @@ function App() {
 
   const chartConfig: ChartConfig = {
     colors: [
-      "rgba(255, 99, 132", // red
-      "rgba(54, 162, 235", // blue
-      "rgba(255, 206, 86", // yellow
-      "rgba(75, 192, 192", // teal
-      "rgba(153, 102, 255", // purple
+      "rgba(255, 99, 132)", // red
+      "rgba(54, 162, 235)", // blue
+      "rgba(255, 206, 86)", // yellow
+      "rgba(75, 192, 192)", // teal
+      "rgba(153, 102, 255)", // purple
     ],
     title: {
       text: "Company Appliances",
       align: "start",
       fontSize: 20,
     },
-    labels: true,
+    labels: {
+      enabled: true,
+      showValues: true,
+      valuesOnly: true,
+      fontSize: 8,
+      color: "#ff0000",
+    },
     tooltip: {
       enabled: true,
       custom: CustomTooltip,
@@ -131,7 +138,7 @@ function App() {
   }
 
   return (
-    <main className="p-8">
+    <main className={cn("p-8")}>
       <SunburstChart data={data} config={chartConfig} />
       <br />
       <input type="text" onChange={(e) => searchByKeyword(e.target.value)} />
