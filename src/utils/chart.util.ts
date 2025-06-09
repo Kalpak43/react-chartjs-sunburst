@@ -72,8 +72,6 @@ export function convertToChartLayers(data: DataNode[][], colors: string[]) {
 
   let previousLevelColorRefs: string[] = [];
 
-  const totalLevels = data.length;
-
   data.forEach((level, levelIndex) => {
     const dataset = {
       data: [] as number[],
@@ -107,9 +105,7 @@ export function convertToChartLayers(data: DataNode[][], colors: string[]) {
       currentLevelColorRefs.push(baseColor);
 
       // Calculate opacity based on depth
-      const opacity = isDummy
-        ? 0
-        : Math.min(1, 0.2 + (totalLevels - levelIndex - 1) * 0.2);
+      const opacity = isDummy ? 0 : Math.min(0.9, 1 - levelIndex * 0.2);
 
       dataset.data.push(node.data ?? 0);
       dataset.backgroundColor.push(`${baseColor}, ${opacity})`);

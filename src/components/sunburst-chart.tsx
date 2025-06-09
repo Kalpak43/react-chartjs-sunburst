@@ -59,7 +59,6 @@ export function SunburstChart({ data, config }: SunburstProps) {
 
   // Create chart configuration
   const chartConfig: ChartConfiguration = useMemo(() => {
-    let animationComplete = false;
 
     return {
       type: "doughnut",
