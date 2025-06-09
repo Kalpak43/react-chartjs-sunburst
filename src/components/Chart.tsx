@@ -10,9 +10,22 @@ import {
   DoughnutController,
   ArcElement,
   Tooltip,
+  type TooltipOptions,
+  type ChartTypeRegistry,
+  type ChartEvent,
+  type ActiveElement,
+  Title,
+  type TitleOptions,
 } from "chart.js";
 import { useEffect, useRef } from "react";
 import DataLabelsPlugin from "chartjs-plugin-datalabels";
+import {
+  computeValues,
+  convertToChartLayers,
+  extractArcLabels,
+  flatten,
+} from "../utils/chart.util";
+import type { Options } from "chartjs-plugin-datalabels/types/options";
 
 Chart.register([
   CategoryScale,
@@ -24,158 +37,175 @@ Chart.register([
   ArcElement,
   Tooltip,
   DataLabelsPlugin,
+  Title,
 ]);
 
-function computeValues(node: Data): number {
-  if (node.value !== undefined) {
-    return node.value;
-  }
-
-  if (node.children && node.children.length > 0) {
-    const total = node.children.reduce((sum, child) => {
-      return sum + computeValues(child);
-    }, 0);
-
-    node.value = total;
-    return total;
-  }
-
-  // Fallback: node has no value and no children
-  node.value = 0;
-  return 0;
+interface SunburstProps {
+  data: Data;
+  config: ChartConfig;
 }
 
-function flatten(root: Data): DataNode[][] {
-  const result: DataNode[][] = [];
-  let currentLevel: Data[] = [root];
-  let parentIndices: number[] = [-1]; // root has no parent
-
-  while (currentLevel.length > 0) {
-    const levelNodes: DataNode[] = [];
-    const nextLevel: Data[] = [];
-    const nextParentIndices: number[] = [];
-
-    // Check if any node in this level has children
-    const anyHasChildren = currentLevel.some(
-      (node) => node.children && node.children.length > 0
-    );
-
-    currentLevel.forEach((node, index) => {
-      const parentIndex = parentIndices[index];
-      const currentNodeIndex = levelNodes.length;
-
-      levelNodes.push({
-        label: node.name,
-        ...(node.value !== undefined ? { data: node.value } : {}),
-        parentIndex,
-      } as DataNode);
-
-      if (node.children && node.children.length > 0) {
-        for (let child of node.children) {
-          nextLevel.push(child);
-          nextParentIndices.push(currentNodeIndex);
-        }
-      } else if (anyHasChildren) {
-        // No children, but siblings have -> insert dummy
-        nextLevel.push({
-          name: "Dummy",
-          value: node.value ?? 0, // default to 0 if value is missing
-        });
-        nextParentIndices.push(currentNodeIndex);
-      }
-    });
-
-    result.push(levelNodes);
-    currentLevel = nextLevel;
-    parentIndices = nextParentIndices;
-  }
-
-  return result;
-}
-
-function convertToChartLayers(data: DataNode[][], colors: string[]) {
-  const label = data[0][0].label;
-  data = data.slice(1);
-  const datasets: any[] = [];
-
-  let previousLevelColorRefs: string[] = [];
-
-  const totalLevels = data.length;
-
-  data.forEach((level, levelIndex) => {
-    const dataset = {
-      data: [] as number[],
-      backgroundColor: [] as string[],
-      borderColor: ["rgba(255, 255, 255, 1)"],
-      hoverBackgroundColor: [] as string[],
-      hoverBorderColor: [] as string[],
-      borderWidth: 1,
-      custom: [] as { isDummy: boolean }[],
-    };
-
-    dataset["custom"] = level.map((node) => ({
-      isDummy: node.label === "Dummy",
-    }));
-
-    const currentLevelColorRefs: string[] = [];
-
-    level.forEach((node, index) => {
-      const isDummy = node.label === "Dummy";
-
-      // Determine baseColor
-      let baseColor: string;
-      if (levelIndex === 0 || node.parentIndex === -1) {
-        // Root node or top-level nodes get unique colors
-        baseColor = colors[index % colors.length];
-      } else {
-        // Inherit color from parent node in previous level
-        baseColor = previousLevelColorRefs[node.parentIndex];
-      }
-
-      currentLevelColorRefs.push(baseColor);
-
-      // Calculate opacity based on depth
-      const opacity = isDummy
-        ? 0
-        : Math.min(1, 0.2 + (totalLevels - levelIndex - 1) * 0.2);
-
-      dataset.data.push(node.data ?? 0);
-      dataset.backgroundColor.push(`${baseColor}, ${opacity})`);
-      dataset.hoverBackgroundColor.push(`${baseColor}, ${isDummy ? 0 : 1})`);
-      dataset.hoverBorderColor.push(`${baseColor}, ${isDummy ? 0 : 1})`);
-
-      dataset.custom.push({ isDummy });
-    });
-
-    previousLevelColorRefs = currentLevelColorRefs;
-    datasets.push(dataset);
-  });
-
-  // Reverse final datasets so inner ring (deepest level) is drawn last
-  return { label, datasets: datasets.reverse() };
-}
-
-function extractArcLabels(data: DataNode[][]): string[] {
-  // Flatten Node[][] to a single array following dataset structure
-  return data
-    .slice() // avoid mutating original
-    .reverse() // match convertToChartLayers
-    .flatMap((level) =>
-      level.map((node) => (node.label === "Dummy" ? "" : node.label))
-    );
-}
-
-function SunburstChart({ data, colors }: { data: Data; colors: string[] }) {
+function SunburstChart({
+  data,
+  config: { colors, tooltip, labels, title, onArcClick },
+}: SunburstProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartInstanceRef = useRef<Chart | null>(null);
+  const tooltipRootRef = useRef<any>(null);
 
   computeValues(data);
   const flattenedDataset = flatten(data);
   const chartData = convertToChartLayers(flattenedDataset, colors);
   const arcLabels = extractArcLabels(flattenedDataset);
 
+  const titleConfig: Partial<TitleOptions> = {
+    display: !!title,
+    text: title.text,
+    align: title.align ?? "center",
+    padding: {
+      top: 5,
+      bottom: 5,
+    },
+    font: {
+      size: title.fontSize ?? 12,
+    },
+  };
+
+  const tooltipConfig: Partial<TooltipOptions<keyof ChartTypeRegistry>> = {
+    enabled: tooltip.custom ? false : tooltip.enabled, // Disable the built-in tooltip
+    external: function (context) {
+      if (!tooltip.enabled || !tooltip.custom) return;
+      // Get tooltip element
+      const tooltipEl = document.getElementById("chartjs-tooltip");
+      if (!tooltipEl) return;
+
+      // Hide if no tooltip
+      const tooltipModel = context.tooltip;
+      if (tooltipModel.opacity === 0) {
+        tooltipEl!.style.opacity = "0";
+        return;
+      }
+
+      // Set position
+      const position = context.chart.canvas.getBoundingClientRect();
+      tooltipEl!.style.position = "absolute";
+      tooltipEl!.style.left = position.left + tooltipModel.caretX + "px";
+      tooltipEl!.style.top = position.top + tooltipModel.caretY + "px";
+      tooltipEl!.style.transform = `translate(${tooltip.customOffsetX ?? 0}%, ${
+        tooltip.customOffsetY ?? 0
+      }%)`;
+      tooltipEl!.style.pointerEvents = "none";
+
+      // Get data
+      const datasetIndex = tooltipModel.dataPoints[0].datasetIndex;
+      const dataIndex = tooltipModel.dataPoints[0].dataIndex;
+      const flatIndex = getFlatIndex(datasetIndex, dataIndex);
+      const label = arcLabels[flatIndex];
+      const value = tooltipModel.dataPoints[0].raw as number;
+      const dataset = chartData.datasets[datasetIndex];
+      const parentValue = dataset.data.reduce(
+        (a: number, b: number) => a + b,
+        0
+      );
+
+      // Check if it's a dummy arc
+      const isDummy = dataset.custom[dataIndex].isDummy;
+      if (isDummy) {
+        tooltipEl!.style.opacity = "0";
+        return;
+      }
+
+      const CustomTooltip = tooltip.custom;
+
+      // Safely render the tooltip
+      if (tooltipRootRef.current) {
+        tooltipRootRef.current.render(
+          <CustomTooltip
+            label={label}
+            value={value}
+            parentValue={parentValue}
+          />
+        );
+      }
+
+      tooltipEl!.style.opacity = "1";
+    },
+  };
+
+  const labelConfig: Partial<Options> = {
+    color: "#000000",
+    font: {
+      size: 11,
+    },
+    formatter: function (value: number, context: any) {
+      const { datasetIndex, dataIndex } = context;
+      const flatIndex = getFlatIndex(datasetIndex, dataIndex);
+      const label = arcLabels[flatIndex];
+
+      // Don't show labels for dummy arcs
+      const dataset = context.dataset as any;
+      const isDummy = dataset.custom?.[dataIndex]?.isDummy;
+      if (isDummy) return "";
+
+      // Return label and value
+      return `${label}`;
+    },
+    align: "center",
+    anchor: "center",
+  };
+
+  const handleClick = (
+    event: ChartEvent,
+    elements: ActiveElement[],
+    chart: Chart
+  ) => {
+    if (!elements.length || !onArcClick) return;
+
+
+
+    const element = elements[0];
+    const { datasetIndex, index } = element;
+
+    // Get the clicked arc's data
+    const flatIndex = getFlatIndex(datasetIndex, index);
+    const label = arcLabels[flatIndex];
+    const value = chartData.datasets[datasetIndex].data[index];
+
+    // Check if it's not a dummy arc
+    const isDummy = chartData.datasets[datasetIndex].custom[index].isDummy;
+    if (!isDummy) {
+      onArcClick(label, value);
+    }
+  };
+
+  useEffect(() => {
+    // Create tooltip container if it doesn't exist
+    let tooltipContainer = document.getElementById("chartjs-tooltip");
+    if (!tooltipContainer) {
+      tooltipContainer = document.createElement("div");
+      tooltipContainer.id = "chartjs-tooltip";
+      document.body.appendChild(tooltipContainer);
+    }
+
+    // Initialize tooltip root
+    tooltipRootRef.current = createRoot(tooltipContainer);
+
+    // Cleanup
+    return () => {
+      tooltipRootRef.current?.unmount();
+      tooltipContainer?.remove();
+    };
+  }, []);
+
   useEffect(() => {
     if (canvasRef.current) {
+      // Destroy existing chart if it exists
+      if (chartInstanceRef.current) {
+        chartInstanceRef.current.destroy();
+      }
+
       const ctx = canvasRef.current.getContext("2d");
+      let animationComplete = false;
 
       // Configuration options
       const chartConfig: ChartConfiguration = {
@@ -183,141 +213,50 @@ function SunburstChart({ data, colors }: { data: Data; colors: string[] }) {
         data: chartData,
         options: {
           // @ts-ignore
-          cutout: "0%",
+          cutout: "20%",
           responsive: true,
+          animation: {
+            onComplete: function () {
+              animationComplete = true;
+              this.update();
+            },
+          },
           plugins: {
-            legend: {
-              display: true,
-              position: "top",
-              labels: {
-                color: "black",
-              },
-            },
-            tooltip: {
-              enabled: false, // Disable the built-in tooltip
-              external: function (context) {
-                // Get tooltip element
-                const tooltipEl = document.getElementById("chartjs-tooltip");
-
-                // Create element on first render
-                if (!tooltipEl) {
-                  const div = document.createElement("div");
-                  div.id = "chartjs-tooltip";
-                  document.body.appendChild(div);
-                }
-
-                // Hide if no tooltip
-                const tooltipModel = context.tooltip;
-                if (tooltipModel.opacity === 0) {
-                  tooltipEl!.style.opacity = "0";
-                  return;
-                }
-
-                // Set position
-                const position = context.chart.canvas.getBoundingClientRect();
-                tooltipEl!.style.position = "absolute";
-                tooltipEl!.style.left =
-                  position.left + tooltipModel.caretX + "px";
-                tooltipEl!.style.top =
-                  position.top + tooltipModel.caretY + "px";
-                tooltipEl!.style.transform = "translate(-50%, -100%)";
-                tooltipEl!.style.pointerEvents = "none";
-
-                // Get data
-                const datasetIndex = tooltipModel.dataPoints[0].datasetIndex;
-                const dataIndex = tooltipModel.dataPoints[0].dataIndex;
-                const flatIndex = getFlatIndex(datasetIndex, dataIndex);
-                const label = arcLabels[flatIndex];
-                const value = tooltipModel.dataPoints[0].raw as number;
-                const dataset = chartData.datasets[datasetIndex];
-                const parentValue = dataset.data.reduce(
-                  (a: number, b: number) => a + b,
-                  0
-                );
-
-                // Check if it's a dummy arc
-                const isDummy = dataset.custom[dataIndex].isDummy;
-                if (isDummy) {
-                  tooltipEl!.style.opacity = "0";
-                  return;
-                }
-
-                // Render tooltip
-                const root = createRoot(tooltipEl!);
-                root.render(
-                  <CustomTooltip
-                    label={label}
-                    value={value}
-                    parentValue={parentValue}
-                  />
-                );
-
-                tooltipEl!.style.opacity = "1";
-              },
-            },
-
+            title: titleConfig,
+            tooltip: tooltipConfig,
             datalabels: {
-              color: "#000000",
-              font: {
-                size: 11,
-              },
-              formatter: function (value: number, context: any) {
-                const { datasetIndex, dataIndex } = context;
-                const flatIndex = getFlatIndex(datasetIndex, dataIndex);
-                const label = arcLabels[flatIndex];
-
-                // Don't show labels for dummy arcs
-                const dataset = context.dataset as any;
-                const isDummy = dataset.custom?.[dataIndex]?.isDummy;
-                if (isDummy) return "";
-
-                // Return label and value
-                return `${label}`;
-              },
-              align: "center",
-              anchor: "center",
+              ...labelConfig,
               display: function (context: any) {
+                if (!animationComplete) return false;
+                if (!labels) return false;
                 // Hide labels for arcs that are too small
                 const value = context.dataset.data[context.dataIndex];
                 const total = context.dataset.data.reduce(
                   (a: number, b: number) => a + b,
                   0
                 );
-                return value / total > 0.05; // Only show if arc is > 5% of total
+
+                return value / total > 0.05;
               },
             },
           },
-          onClick: (event, elements) => {
-            if (!elements.length) return;
-
-            const element = elements[0];
-            const { datasetIndex, index } = element;
-
-            // Get the clicked arc's data
-            const flatIndex = getFlatIndex(datasetIndex, index);
-            const label = arcLabels[flatIndex];
-            const value = chartData.datasets[datasetIndex].data[index];
-
-            // Check if it's not a dummy arc
-            const isDummy =
-              chartData.datasets[datasetIndex].custom[index].isDummy;
-            if (!isDummy) {
-              // onArcClick(label, value);
-              alert(`${label} - ${value}`);
-            }
-          },
+          onClick: handleClick,
         },
       };
 
-      // Create chart instance
-      const myChart = new Chart(ctx as any, chartConfig);
+      chartInstanceRef.current = new Chart(ctx as any, chartConfig);
 
-      // Clean-up function to destroy the chart when the component unmounts
       return () => {
-        myChart.destroy();
+        if (chartInstanceRef.current) {
+          chartInstanceRef.current.destroy();
+        }
       };
     }
-  }, []);
+  }, [data]);
+
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
 
   function getFlatIndex(datasetIndex: number, dataIndex: number) {
     const data = chartData.datasets;
@@ -330,7 +269,7 @@ function SunburstChart({ data, colors }: { data: Data; colors: string[] }) {
 
   return (
     <div className="border border-amber-600 rounded-md w-fit p-4">
-      <div className="max-w-[500px]">
+      <div className="max-w-[300px] md:max-w-[500px]">
         <canvas height={300} width={400} ref={canvasRef}></canvas>
       </div>
     </div>
@@ -338,23 +277,3 @@ function SunburstChart({ data, colors }: { data: Data; colors: string[] }) {
 }
 
 export default SunburstChart;
-
-interface CustomTooltipProps {
-  label: string;
-  value: number;
-  parentValue?: number;
-}
-
-const CustomTooltip = ({ label, value, parentValue }: CustomTooltipProps) => {
-  const percentage = parentValue
-    ? ((value / parentValue) * 100).toFixed(1)
-    : null;
-
-  return (
-    <div className="bg-white px-4 py-2 rounded-lg shadow-lg border border-gray-200">
-      <div className="font-semibold">{label}</div>
-      <div>Value: {value.toLocaleString()}</div>
-      {percentage && <div>Percentage: {percentage}%</div>}
-    </div>
-  );
-};
