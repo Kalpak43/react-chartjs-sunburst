@@ -1,54 +1,160 @@
-# React + TypeScript + Vite
+# Sunburst Chart Component
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React component for creating interactive, multi-level sunburst charts using Chart.js.
 
-Currently, two official plugins are available:
+## Installation
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+npm install chart.js chartjs-plugin-datalabels
+```
 
-## Expanding the ESLint configuration
+## Usage
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```tsx
+import { SunburstChart } from './components/sunburst-chart';
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
+const data = {
+  name: "Root",
+  children: [
+    {
+      name: "Category A",
+      children: [
+        { name: "Sub A1", value: 100 },
+        { name: "Sub A2", value: 50 }
+      ]
     },
+    {
+      name: "Category B",
+      value: 75
+    }
+  ]
+};
+
+const config = {
+  colors: ["#FF6384", "#36A2EB", "#FFCE56"],
+  title: {
+    text: "My Sunburst Chart",
+    align: "center",
+    fontSize: 20,
+    color: "#000000"
   },
-})
+  labels: {
+    enabled: true,
+    showValues: true,
+    fontSize: 12,
+    color: "#FFFFFF"
+  },
+  tooltip: {
+    enabled: true
+  },
+  cutout: "10%"
+};
+
+function App() {
+  return <SunburstChart data={data} config={config} />;
+}
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## API Reference
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Props
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+The `SunburstChart` component accepts two props:
+
+#### `data: Data`
+
+The hierarchical data structure that defines the chart:
+
+```typescript
+interface Data {
+  name: string;
+  value?: number;
+  children?: Data[];
+}
 ```
+
+- `name`: Label for the segment
+- `value`: (Optional) Numeric value for the segment
+- `children`: (Optional) Array of child segments
+
+If a node has both a value and children, the value will be computed as the sum of its children's values.
+
+#### `config: ChartConfig`
+
+Configuration object for customizing the chart:
+
+```typescript
+interface ChartConfig {
+  colors: string[];           // Array of colors for the chart segments
+  title: {
+    text: string;            // Chart title
+    align?: "center" | "start" | "end";
+    fontSize?: number;
+    color?: string;
+  };
+  labels: {
+    enabled: boolean;        // Enable/disable labels
+    fontSize?: number;
+    color?: string;
+    showValues?: boolean;    // Show numeric values in labels
+    valuesOnly?: boolean;    // Show only values (no labels)
+  };
+  tooltip: {
+    enabled: boolean;        // Enable/disable tooltips
+    custom?: (props: TooltipProps) => JSX.Element;  // Custom tooltip component
+    customOffsetX?: number;  // Horizontal offset for custom tooltip
+    customOffsetY?: number;  // Vertical offset for custom tooltip
+  };
+  onArcClick?: (data: { label: string }) => void;  // Click handler for segments
+  cutout?: string;          // Center cutout size (e.g., "10%")
+}
+```
+
+### Tooltip Customization
+
+You can provide a custom tooltip component through the `tooltip.custom` property. The component will receive the following props:
+
+```typescript
+interface TooltipProps {
+  label: string;      // Segment label
+  value: number;      // Segment value
+  parentValue: number; // Parent segment value
+  color?: string;     // Segment color
+}
+```
+
+Example custom tooltip:
+
+```tsx
+const CustomTooltip = ({ label, value, parentValue, color }: TooltipProps) => {
+  const percentage = ((value / parentValue) * 100).toFixed(1);
+  return (
+    <div className="tooltip">
+      <div>{label}</div>
+      <div>Value: {value}</div>
+      <div>Percentage: {percentage}%</div>
+    </div>
+  );
+};
+```
+
+## Features
+
+- 🎨 Customizable colors, labels, and tooltips
+- 📊 Multi-level data visualization
+- 🖱️ Interactive segments with click handling
+- 📏 Responsive design
+- 💡 Smart label positioning
+- 🔄 Smooth animations
+- 📱 Mobile-friendly
+- 🎯 Percentage and value display
+
+## Dependencies
+
+- React 16.8+
+- Chart.js 4.x
+- chartjs-plugin-datalabels
+
+## License
+
+MIT
