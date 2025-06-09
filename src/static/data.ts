@@ -8,7 +8,7 @@ export const applianceData: Data = {
           name: "Computers",
           children: [
             { name: "Laptops", value: 120 },
-            { name: "Desktops", value: 80 },
+            { name: "Laptops", value: 80 },
           ],
         },
         {

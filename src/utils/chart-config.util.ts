@@ -83,6 +83,8 @@ export function createDataLabelsConfig(
   labels: boolean,
   arcLabels: string[]
 ): Partial<DataLabelsOptions> {
+  const labelOccurrences = new Map<string, number[]>();
+
   return {
     color: "#000000",
     font: {
@@ -101,6 +103,23 @@ export function createDataLabelsConfig(
       const dataset = context.dataset as any;
       const isDummy = dataset.custom?.[dataIndex]?.isDummy;
       if (isDummy) return "";
+
+      // Track occurrences of each label with their flatIndices
+      if (!labelOccurrences.has(label)) {
+        labelOccurrences.set(label, [flatIndex]);
+      } else {
+        const indices = labelOccurrences.get(label)!;
+        if (!indices.includes(flatIndex)) {
+          indices.push(flatIndex);
+        }
+      }
+
+      // Only add numbering if this label appears multiple times
+      const indices = labelOccurrences.get(label)!;
+      if (indices.length > 1) {
+        const position = indices.indexOf(flatIndex) + 1;
+        return `${label} (${position})`;
+      }
 
       return label;
     },
