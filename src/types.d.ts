@@ -10,6 +10,13 @@ interface DataNode {
   parentIndex: number;
 }
 
+interface ChartTitleConfig {
+  text: string;
+  align?: "center" | "start" | "end";
+  fontSize?: number;
+  color?: string;
+}
+
 interface ChartLabelConfig {
   enabled: boolean;
   fontSize?: number;
@@ -25,25 +32,20 @@ interface ChartTooltipConfig {
   customOffsetY?: number;
 }
 
+interface ChartConfig {
+  colors: string[];
+  title: ChartTitleConfig;
+  labels: ChartLabelConfig;
+  tooltip: ChartTooltipConfig;
+  onArcClick?: ({}: any) => void;
+  cutout?: string;
+}
+
 interface TooltipProps {
   label: string;
   value: number;
   parentValue: number;
   color?: string;
-}
-
-interface ChartConfig {
-  colors: string[];
-  title: {
-    text: string;
-    align?: "center" | "start" | "end";
-    fontSize?: number;
-    color?: string;
-  };
-  labels: ChartLabelConfig;
-  tooltip: ChartTooltipConfig;
-  onArcClick?: ({}: any) => void;
-  cutout?: string;
 }
 
 interface ChartData {

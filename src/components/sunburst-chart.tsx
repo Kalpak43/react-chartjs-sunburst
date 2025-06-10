@@ -1,5 +1,3 @@
-"use client";
-
 import { useRef, useMemo, useEffect } from "react";
 import {
   CategoryScale,
@@ -22,9 +20,9 @@ import {
   createTooltipConfig,
   createDataLabelsConfig,
   createClickHandler,
-} from "../utils/chart-config.util";
-import { ChartCanvas } from "./chart-canvas";
-import { processChartData } from "../utils/chart.util";
+} from "../lib/chart-config.util";
+import { processChartData } from "../lib/chart.util";
+import { cn } from "@/lib/utils";
 
 // Register Chart.js components
 Chart.register([
@@ -43,9 +41,18 @@ Chart.register([
 interface SunburstProps {
   data: Data;
   config: ChartConfig;
+  height?: number;
+  width?: number;
+  className?: string;
 }
 
-export function SunburstChart({ data, config }: SunburstProps) {
+export function SunburstChart({
+  data,
+  config,
+  width = 400,
+  height = 300,
+  className = "",
+}: SunburstProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartInstanceRef = useRef<Chart | null>(null);
   const animationCompleteRef = useRef(false);
@@ -125,8 +132,8 @@ export function SunburstChart({ data, config }: SunburstProps) {
   }, [data, config]);
 
   return (
-    <div className="border border-amber-600 rounded-md w-fit p-4">
-      <ChartCanvas ref={canvasRef} />
+    <div className={cn("max-w-[300px] md:max-w-[500px]", className)}>
+      <canvas height={height} width={width} ref={canvasRef} />
     </div>
   );
 }
