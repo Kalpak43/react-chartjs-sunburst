@@ -25,6 +25,31 @@ export function createTitleConfig(
   };
 }
 
+/**
+ * Calculates a unique flat index for identifying elements across multiple datasets.
+ *
+ * In Chart.js, data is organized in datasets where each dataset contains multiple data points.
+ * To reference a specific element, we need both datasetIndex and dataIndex.
+ * This function converts these two indices into a single flat index by:
+ * 1. Adding up the lengths of all previous datasets
+ * 2. Adding the current dataIndex
+ *
+ * Example:
+ * Dataset 0: [a, b, c] (length 3)
+ * Dataset 1: [d, e]    (length 2)
+ * Dataset 2: [f, g, h] (length 3)
+ *
+ * // 1D array of all data points:
+ * // [a, b, c, d, e, f, g, h]
+ *
+ * getFlatIndex(1, 1) would:
+ * 1. Sum length of dataset 0 (3)
+ * 2. Add dataIndex (1)
+ * Result: 4 (pointing to element 'e')
+ *
+ * Since, we are creating a 1D array of labels this is useful to determine labels for each datapoint.
+ **/
+
 export function createTooltipConfig(
   tooltip: ChartConfig["tooltip"],
   chartData: ChartData,

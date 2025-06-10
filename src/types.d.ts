@@ -51,3 +51,21 @@ interface TooltipProps {
 interface ChartData {
   datasets: any[];
 }
+
+interface ConfigurationState {
+  cutout: number;
+  selectedColorPreset: number;
+  titleText: string;
+  titleAlign: "start" | "center" | "end";
+  titleFontSize: number;
+  titleColor: string;
+  labelsEnabled: boolean;
+  showValues: boolean;
+  valuesOnly: boolean;
+  labelsFontSize: number;
+  labelsColor: string;
+  tooltipEnabled: boolean;
+  customTooltip: boolean;
+  tooltipOffsetX: number;
+  tooltipOffsetY: number;
+}

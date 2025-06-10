@@ -24,7 +24,6 @@ import {
 import { processChartData } from "../lib/chart.util";
 import { cn } from "@/lib/utils";
 
-// Register Chart.js components
 Chart.register([
   CategoryScale,
   LineController,
@@ -58,7 +57,6 @@ export function SunburstChart({
   const animationCompleteRef = useRef(false);
   const { renderTooltip } = useChartTooltip(config);
 
-  // Process chart data
   const { chartData, arcLabels } = useMemo(
     () => processChartData(data, config.colors),
     [data, config.colors]
@@ -70,6 +68,7 @@ export function SunburstChart({
       type: "doughnut",
       data: chartData,
       options: {
+        // ignore was added to avoid typescript error. the cutout option is available in the options but typescript is not recognizing it.
         // @ts-ignore
         cutout: config.cutout ?? "50%",
         responsive: true,
@@ -114,7 +113,6 @@ export function SunburstChart({
 
     animationCompleteRef.current = false;
 
-    // Destroy existing chart if it exists
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
     }

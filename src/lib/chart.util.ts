@@ -1,5 +1,6 @@
 import { colorWithOpacity } from "./color.util";
 
+// computes the value of each node
 export function computeValues(node: Data): number {
   if (node.value !== undefined) {
     return node.value;
@@ -19,6 +20,7 @@ export function computeValues(node: Data): number {
   return 0;
 }
 
+// converts the tree structure to array format
 export function flatten(root: Data): DataNode[][] {
   const result: DataNode[][] = [];
   let currentLevel: Data[] = [root];
@@ -67,6 +69,7 @@ export function flatten(root: Data): DataNode[][] {
   return result;
 }
 
+// convert the array format data from flatten stage to Chart.js compatible strucrture
 export function convertToChartLayers(data: DataNode[][], colors: string[]) {
   const label = data[0][0].label;
   if (data.length > 1) data = data.slice(1);
@@ -132,16 +135,17 @@ export function convertToChartLayers(data: DataNode[][], colors: string[]) {
   return { label, datasets: datasets.reverse() };
 }
 
+// extracts all the labels into 1D array
 export function extractArcLabels(data: DataNode[][]): string[] {
-  // Flatten Node[][] to a single array following dataset structure
   return data
-    .slice() // avoid mutating original
-    .reverse() // match convertToChartLayers
+    .slice() 
+    .reverse() 
     .flatMap((level) =>
       level.map((node) => (node.label === "Dummy" ? "" : node.label))
     );
 }
 
+// processes the original data and utilizes the above functions to prepare it for plotting
 export function processChartData(data: Data, colors: string[]) {
   computeValues(data);
   const flattenedDataset = flatten(data);

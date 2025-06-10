@@ -55,6 +55,10 @@ function App() {
 }
 ```
 
+## Example
+
+You can view the example located at `src/components/playground`.
+
 ## API Reference
 
 ### Props
@@ -151,9 +155,13 @@ const CustomTooltip = ({ label, value, parentValue, color }: TooltipProps) => {
 
 ## Dependencies
 
-- React 16.8+
-- Chart.js 4.x
-- chartjs-plugin-datalabels
+- React 19.1+
+- Chart.js 4.4+
+- chartjs-plugin-datalabels 2.2+
+- shadcn ui 2.6+
+- motion 12.16+
+- Tailwind CSS v4
+- Other utility libraries (clsx, tailwind-merge, class-variance-authority)
 
 ## License
 

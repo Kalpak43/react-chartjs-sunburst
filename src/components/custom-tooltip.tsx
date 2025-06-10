@@ -1,7 +1,5 @@
-"use client";
-
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
-import { TrendingUp, Hash, Percent, Info } from "lucide-react";
+import { motion, AnimatePresence, LayoutGroup } from "motion/react";
+import { TrendingUp, Hash, Percent } from "lucide-react";
 
 interface TooltipProps {
   label: string;
@@ -29,13 +27,45 @@ const CustomTooltip = ({
         <LayoutGroup>
           <motion.div
             layout
-            initial={{ opacity: 0, scale: 0.8, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            initial={{ opacity: 0, scale: 0.9, y: 8 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              transition: {
+                duration: 0.3,
+                ease: [0.4, 0.0, 0.2, 1], // Custom easing for smoother feel
+                opacity: { duration: 0.2, delay: 0.1 }, // Slight delay for opacity
+                scale: {
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
+                  duration: 0.4,
+                },
+                y: {
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 25,
+                  duration: 0.3,
+                },
+              },
+            }}
+            exit={{
+              opacity: 0,
+              scale: 0.9,
+              y: 8,
+              transition: {
+                duration: 0.2,
+                ease: [0.4, 0.0, 1, 1],
+              },
+            }}
             transition={{
-              layout: { type: "spring", stiffness: 300, damping: 25 },
-              opacity: { duration: 0.2 },
-              scale: { type: "spring", stiffness: 400, damping: 20 },
+              layout: {
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                duration: 0.4,
+              },
             }}
             className="relative bg-white/95 backdrop-blur-sm px-4 py-3 rounded-xl shadow-xl border border-gray-200/50 text-sm max-w-xs"
             style={{
@@ -47,45 +77,72 @@ const CustomTooltip = ({
             <motion.div
               layout
               layoutId="color-bar"
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
+              initial={{ width: 0, opacity: 0 }}
+              animate={{
+                width: "100%",
+                opacity: 1,
+                transition: {
+                  width: { delay: 0.2, duration: 0.4, ease: "easeOut" },
+                  opacity: { delay: 0.15, duration: 0.2 },
+                },
+              }}
               transition={{
-                width: { delay: 0.1, duration: 0.3 },
-                layout: { type: "spring", stiffness: 300, damping: 25 },
+                layout: { type: "spring", stiffness: 300, damping: 30 },
               }}
               className="absolute top-0 left-0 h-1 rounded-t-xl"
               style={{ backgroundColor: color ?? "#6366f1" }}
             />
 
             {/* Content */}
-            <motion.div layout className="space-y-2 pt-1">
+            <motion.div
+              layout
+              className="space-y-2 pt-1"
+              transition={{
+                layout: { type: "spring", stiffness: 300, damping: 30 },
+              }}
+            >
               {/* Label */}
               <motion.div
                 layout
                 layoutId={`label-${label}`}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                  transition: {
+                    opacity: { delay: 0.15, duration: 0.3 },
+                    x: { delay: 0.15, duration: 0.3, ease: "easeOut" },
+                  },
+                }}
                 transition={{
-                  opacity: { delay: 0.1 },
-                  x: { delay: 0.1 },
-                  layout: { type: "spring", stiffness: 300, damping: 25 },
+                  layout: { type: "spring", stiffness: 300, damping: 30 },
                 }}
                 className="font-semibold text-gray-800 flex items-center gap-2"
               >
                 <motion.div
                   layout
                   layoutId={`color-dot-${label}`}
+                  initial={{ scale: 0 }}
+                  animate={{
+                    scale: 1,
+                    transition: {
+                      delay: 0.2,
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 20,
+                    },
+                  }}
                   className="w-3 h-3 rounded-full border-2 border-white shadow-sm flex-shrink-0"
                   style={{ backgroundColor: color ?? "#6366f1" }}
                   transition={{
-                    layout: { type: "spring", stiffness: 300, damping: 25 },
+                    layout: { type: "spring", stiffness: 300, damping: 30 },
                   }}
                 />
                 <motion.span
                   layout
                   className="truncate"
                   transition={{
-                    layout: { type: "spring", stiffness: 300, damping: 25 },
+                    layout: { type: "spring", stiffness: 300, damping: 30 },
                   }}
                 >
                   {label}
@@ -96,12 +153,17 @@ const CustomTooltip = ({
               <motion.div
                 layout
                 layoutId={`value-${value}`}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                  transition: {
+                    opacity: { delay: 0.2, duration: 0.3 },
+                    x: { delay: 0.2, duration: 0.3, ease: "easeOut" },
+                  },
+                }}
                 transition={{
-                  opacity: { delay: 0.15 },
-                  x: { delay: 0.15 },
-                  layout: { type: "spring", stiffness: 300, damping: 25 },
+                  layout: { type: "spring", stiffness: 300, damping: 30 },
                 }}
                 className="flex items-center gap-2 text-gray-600"
               >
@@ -110,11 +172,19 @@ const CustomTooltip = ({
                   layout
                   className="font-medium tabular-nums"
                   key={value} // Force re-render when value changes
-                  initial={{ scale: 1.1 }}
-                  animate={{ scale: 1 }}
+                  initial={{ scale: 1.05, opacity: 0.8 }}
+                  animate={{
+                    scale: 1,
+                    opacity: 1,
+                    transition: {
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 25,
+                      duration: 0.3,
+                    },
+                  }}
                   transition={{
-                    scale: { type: "spring", stiffness: 400, damping: 20 },
-                    layout: { type: "spring", stiffness: 300, damping: 25 },
+                    layout: { type: "spring", stiffness: 300, damping: 30 },
                   }}
                 >
                   {value.toLocaleString()}
@@ -127,14 +197,33 @@ const CustomTooltip = ({
                   <motion.div
                     layout
                     layoutId={`percentage-${percentage}`}
-                    initial={{ opacity: 0, x: -10, height: 0 }}
-                    animate={{ opacity: 1, x: 0, height: "auto" }}
-                    exit={{ opacity: 0, x: -10, height: 0 }}
+                    initial={{ opacity: 0, x: -8, height: 0 }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                      height: "auto",
+                      transition: {
+                        opacity: { delay: 0.25, duration: 0.3 },
+                        x: { delay: 0.25, duration: 0.3, ease: "easeOut" },
+                        height: {
+                          delay: 0.2,
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 30,
+                        },
+                      },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      x: -8,
+                      height: 0,
+                      transition: {
+                        duration: 0.2,
+                        height: { type: "spring", stiffness: 300, damping: 30 },
+                      },
+                    }}
                     transition={{
-                      opacity: { delay: 0.2 },
-                      x: { delay: 0.2 },
-                      height: { type: "spring", stiffness: 300, damping: 25 },
-                      layout: { type: "spring", stiffness: 300, damping: 25 },
+                      layout: { type: "spring", stiffness: 300, damping: 30 },
                     }}
                     className="flex items-center gap-2 text-gray-600 overflow-hidden"
                   >
@@ -143,11 +232,19 @@ const CustomTooltip = ({
                       layout
                       className="font-medium tabular-nums"
                       key={percentage} // Force re-render when percentage changes
-                      initial={{ scale: 1.1 }}
-                      animate={{ scale: 1 }}
+                      initial={{ scale: 1.05, opacity: 0.8 }}
+                      animate={{
+                        scale: 1,
+                        opacity: 1,
+                        transition: {
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 25,
+                          duration: 0.3,
+                        },
+                      }}
                       transition={{
-                        scale: { type: "spring", stiffness: 400, damping: 20 },
-                        layout: { type: "spring", stiffness: 300, damping: 25 },
+                        layout: { type: "spring", stiffness: 300, damping: 30 },
                       }}
                     >
                       {percentage}%
@@ -156,19 +253,25 @@ const CustomTooltip = ({
                       layout
                       className="flex-1 bg-gray-200 rounded-full h-1.5 ml-1 overflow-hidden"
                       transition={{
-                        layout: { type: "spring", stiffness: 300, damping: 25 },
+                        layout: { type: "spring", stiffness: 300, damping: 30 },
                       }}
                     >
                       <motion.div
                         layoutId={`progress-bar-${percentage}`}
                         initial={{ width: 0 }}
-                        animate={{ width: `${percentage}%` }}
+                        animate={{
+                          width: `${percentage}%`,
+                          transition: {
+                            delay: 0.4,
+                            duration: 0.6,
+                            ease: [0.4, 0.0, 0.2, 1],
+                          },
+                        }}
                         transition={{
-                          width: { delay: 0.3, duration: 0.5, ease: "easeOut" },
                           layout: {
                             type: "spring",
                             stiffness: 300,
-                            damping: 25,
+                            damping: 30,
                           },
                         }}
                         className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-500"
@@ -184,14 +287,39 @@ const CustomTooltip = ({
                   <motion.div
                     layout
                     layoutId="trend-indicator"
-                    initial={{ opacity: 0, scale: 0, height: 0 }}
-                    animate={{ opacity: 1, scale: 1, height: "auto" }}
-                    exit={{ opacity: 0, scale: 0, height: 0 }}
+                    initial={{ opacity: 0, scale: 0.8, height: 0 }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      height: "auto",
+                      transition: {
+                        opacity: { delay: 0.3, duration: 0.3 },
+                        scale: {
+                          delay: 0.3,
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 25,
+                          duration: 0.4,
+                        },
+                        height: {
+                          delay: 0.25,
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 30,
+                        },
+                      },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0.8,
+                      height: 0,
+                      transition: {
+                        duration: 0.2,
+                        height: { type: "spring", stiffness: 300, damping: 30 },
+                      },
+                    }}
                     transition={{
-                      opacity: { delay: 0.25 },
-                      scale: { delay: 0.25, type: "spring", stiffness: 200 },
-                      height: { type: "spring", stiffness: 300, damping: 25 },
-                      layout: { type: "spring", stiffness: 300, damping: 25 },
+                      layout: { type: "spring", stiffness: 300, damping: 30 },
                     }}
                     className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full w-fit overflow-hidden"
                   >
@@ -206,14 +334,23 @@ const CustomTooltip = ({
             <motion.div
               layout
               layoutId={`glow-${color}`}
-              className="absolute inset-0 rounded-xl opacity-20 pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: 0.2,
+                transition: {
+                  delay: 0.1,
+                  duration: 0.4,
+                  ease: "easeOut",
+                },
+              }}
+              className="absolute inset-0 rounded-xl pointer-events-none"
               style={{
                 background: `radial-gradient(circle at 50% 0%, ${
                   color ?? "#6366f1"
                 }20, transparent 70%)`,
               }}
               transition={{
-                layout: { type: "spring", stiffness: 300, damping: 25 },
+                layout: { type: "spring", stiffness: 300, damping: 30 },
               }}
             />
           </motion.div>

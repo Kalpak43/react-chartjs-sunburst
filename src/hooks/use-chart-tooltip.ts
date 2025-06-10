@@ -7,7 +7,6 @@ export function useChartTooltip(config: ChartConfig) {
   const tooltipRootRef = useRef<any>(null);
 
   useEffect(() => {
-    // Create tooltip container if it doesn't exist
     let tooltipContainer = document.getElementById("chartjs-tooltip");
     if (!tooltipContainer) {
       tooltipContainer = document.createElement("div");
@@ -15,7 +14,6 @@ export function useChartTooltip(config: ChartConfig) {
       document.body.appendChild(tooltipContainer);
     }
 
-    // Initialize tooltip root
     tooltipRootRef.current = createRoot(tooltipContainer);
 
     // Cleanup
