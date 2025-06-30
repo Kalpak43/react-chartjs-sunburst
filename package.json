@@ -8,6 +8,14 @@
   "files": [
     "dist"
   ],
+  "keywords": [
+    "react",
+    "charts",
+    "sunburst",
+    "chart.js",
+    "visualization",
+    "data"
+  ],
   "peerDependencies": {
     "chart.js": "^4.4.9",
     "chartjs-plugin-datalabels": "^2.2.0",
