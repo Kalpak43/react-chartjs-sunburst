@@ -5,13 +5,13 @@ A React component for creating interactive, multi-level sunburst charts using Ch
 ## Installation
 
 ```bash
-npm install chart.js chartjs-plugin-datalabels
+npm i react-chartjs-sunburst
 ```
 
 ## Usage
 
 ```tsx
-import { SunburstChart } from "./components/sunburst-chart";
+import { SunburstChart } from "react-chartjs-sunburst";
 
 const data = {
   name: "Root",
@@ -54,10 +54,6 @@ function App() {
   return <SunburstChart data={data} config={config} />;
 }
 ```
-
-## Example
-
-You can view the example located at `src/components/playground`.
 
 ## API Reference
 
@@ -155,11 +151,9 @@ const CustomTooltip = ({ label, value, parentValue, color }: TooltipProps) => {
 
 ## Dependencies
 
-- React 19.1+
+- React 18.0+
 - Chart.js 4.4+
 - chartjs-plugin-datalabels 2.2+
-- shadcn ui 2.6+
-- motion 12.16+
 - Tailwind CSS v4
 - Other utility libraries (clsx, tailwind-merge, class-variance-authority)
 
