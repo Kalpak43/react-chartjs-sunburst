@@ -17,18 +17,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Required to fetch full history for tag-to-branch lookup
-
-      - name: Ensure tag points to main
-        run: |
-          BRANCH_NAME=$(git branch -r --contains $GITHUB_SHA | grep origin/main || true)
-          if [ -z "$BRANCH_NAME" ]; then
-            echo "❌ Tag does not point to main. Exiting..."
-            exit 1
-          else
-            echo "✅ Tag points to main. Continuing..."
-          fi
 
       - name: Use Node.js
         uses: actions/setup-node@v4
