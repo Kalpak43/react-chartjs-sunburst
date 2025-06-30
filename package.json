@@ -25,6 +25,7 @@
     "build": "tsc && rollup -c"
   },
   "devDependencies": {
+    "rollup": "^4.44.1",
     "@rollup/plugin-typescript": "^12.1.4",
     "typescript": "^5.8.3"
   }
