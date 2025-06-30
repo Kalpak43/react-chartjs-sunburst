@@ -1,0 +1,50 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    name: Publish Package
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required to fetch full history for tag-to-branch lookup
+
+      - name: Ensure tag points to main
+        run: |
+          BRANCH_NAME=$(git branch -r --contains $GITHUB_SHA | grep origin/main || true)
+          if [ -z "$BRANCH_NAME" ]; then
+            echo "❌ Tag does not point to main. Exiting..."
+            exit 1
+          else
+            echo "✅ Tag points to main. Continuing..."
+          fi
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'  # or your preferred version
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build package
+        run: npm run build
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  
