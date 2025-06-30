@@ -36,9 +36,9 @@ jobs:
 
       - name: Set version from Git tag
         run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          TAG_VERSION=${GITHUB_REF#refs/tags/v} 
           echo "Setting version to $TAG_VERSION"
-          npm version "$TAG_VERSION"
+          npm version "$TAG_VERSION" --no-git-tag-version
 
       - name: Push version bump commit
         run: git push origin HEAD
