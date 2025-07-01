@@ -9,6 +9,11 @@
   "files": [
     "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kalpak43/react-chartjs-sunburst"
+  },
+  "homepage": "https://react-chartjs-sunburst.vercel.app/",
   "keywords": [
     "react",
     "charts",
@@ -17,6 +22,10 @@
     "visualization",
     "data"
   ],
+  "author": {
+    "name": "Kalpak43",
+    "url": "https://github.com/Kalpak43"
+  },
   "peerDependencies": {
     "chart.js": "^4.4.9",
     "chartjs-plugin-datalabels": "^2.2.0",
