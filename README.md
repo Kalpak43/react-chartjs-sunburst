@@ -144,10 +144,6 @@ const CustomTooltip = ({ label, value, parentValue, color }: TooltipProps) => {
 - 📊 Multi-level data visualization
 - 🖱️ Interactive segments with click handling
 - 📏 Responsive design
-- 💡 Smart label positioning
-- 🔄 Smooth animations
-- 📱 Mobile-friendly
-- 🎯 Percentage and value display
 
 ## Dependencies
 
